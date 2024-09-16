@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { IconButton, Paper, Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel } from "@mui/material";
 import { Delete, Edit, Star, StarBorder } from "@mui/icons-material";
 import { Book, BookSort, BookSortIn } from "./Book";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { selectBooks, selectBooksLoadingError, selectBooksLoadingState } from "./booksSlice";
 import { useNavigate } from "react-router-dom";
 import { sortBooks } from "./booksHelpers";
 import ErrorMessage from "../../ErrorMessage";
-import { loadBooksAction } from "./books.actions";
+import { IFetchError } from "../../FetchError";
 
 const tableHead = {
   title: 'Title',
@@ -22,15 +20,13 @@ function List() {
     order: 'asc',
   });
   const navigate = useNavigate();
-  const books = useAppSelector(selectBooks);
-  const booksLoadingState = useAppSelector(selectBooksLoadingState);
-  const booksLoadingError = useAppSelector(selectBooksLoadingError);
-  const dispatch = useAppDispatch();
+  const [books] = useState<Book[]>([]);
+  let error:IFetchError|null = null;
   const sortedBooks = useMemo<Book[]>(() => sortBooks(books, sort), [sort, books]);
 
   useEffect(() => {
-    dispatch(loadBooksAction.request());
-  }, [dispatch]);
+    console.log('TODO: fetch books');
+  }, []);
   
   function onDelete(book:Book) {
     navigate(`/delete/${book.id}`);
@@ -42,7 +38,7 @@ function List() {
 
   return (
     <Paper>
-      { booksLoadingState === 'error' && <ErrorMessage error={booksLoadingError}/> }
+      { error && <ErrorMessage error={error}/> }
       <Table>
         <TableHead>
           <TableRow>

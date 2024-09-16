@@ -30,15 +30,15 @@ server.post('/login', (req, res, next) => {
   }
 });
 
-server.use('/', (req, res, next) => {
-  try {
-    const token = req.headers['authorization'].split(' ')[1];
-    jwt.verify(token, secret);
-    next();
-  } catch(error) {
-    res.sendStatus(403);
-  }
-});
+// server.use('/', (req, res, next) => {
+//   try {
+//     const token = req.headers['authorization'].split(' ')[1];
+//     jwt.verify(token, secret);
+//     next();
+//   } catch(error) {
+//     res.sendStatus(403);
+//   }
+// });
 
 server.use('/', jsonServer.router(dataJson));
 

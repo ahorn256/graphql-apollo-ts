@@ -6,9 +6,7 @@ import loginValidationSchema from "./loginValidationSchema";
 import { useForm } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { loginAction } from "./login.actions";
-import { resetLoginState, selectLoginError, selectLoginState } from "./login.slice";
+import { IFetchError } from "../../FetchError";
 
 function LoginForm() {
   const {
@@ -20,27 +18,20 @@ function LoginForm() {
   });
   const [ open, setOpen ] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const loginState = useAppSelector(selectLoginState);
-  const loginError = useAppSelector(selectLoginError);
+  let error:IFetchError|null = null;
 
   const onClose = useCallback(() => {
-    dispatch(resetLoginState());
     setOpen(false);
     navigate('/');
-  }, [navigate, dispatch]);
+  }, [navigate]);
 
   function onLogin(login:Login) {
-    dispatch(loginAction.request(login));
+    console.log('TODO: onLogin() ', login);
   }
 
   useEffect(() => {
-    if(loginState === 'completed') {
-      onClose();
-    } else {
-      setOpen(true);
-    }
-  }, [loginState, onClose]);
+    setOpen(true);
+  }, []);
 
   return (
     <Dialog
@@ -62,7 +53,7 @@ function LoginForm() {
       
       <form onSubmit={handleSubmit(onLogin)}>
         <DialogContent id='login-form-description'>
-          { loginState === 'error' && <div className="error">Error: {loginError?.message}</div>}
+          {error && <div className="error">Error: {'error.message'}</div>}
           <Grid container direction="column" rowSpacing={1}>
             <Grid>
               <TextField fullWidth={true} label='Benutzername' error={!!errors.user} {...register('user')}></TextField>

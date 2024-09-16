@@ -1,18 +1,12 @@
 import * as Icon from "@mui/icons-material";
 import { AppBar, Box, IconButton, Toolbar } from "@mui/material";
 import { Link } from "react-router-dom";
-import { resetLoginToInitialState, selectToken } from "../login/login.slice";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { resetBooksToInitialState } from "../books/booksSlice";
-
 
 function Nav() {
-  const loginToken = useAppSelector(selectToken);
-  const dispatch = useAppDispatch();
+  let loginToken = false;
 
   function onLogout() {
-    dispatch(resetBooksToInitialState());
-    dispatch(resetLoginToInitialState());
+    console.log('TODO: onLogout()');
   }
 
   return (

@@ -2,15 +2,18 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton }
 import { Close } from '@mui/icons-material';
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { IFetchError } from "../../FetchError";
+import { convertToFetchError, IFetchError } from "../../FetchError";
+import { useDeleteBookMutation } from "../../graphql/generated";
 
 function DeletionDialog() {
   const [ open, setOpen ] = useState(false);
   const { id } = useParams<{id:string}>();
   const navigate = useNavigate();
-  let error:IFetchError|null = null;
+  const [ error, setError ] = useState<IFetchError|null>(null);
+  const [ deleteBook ] = useDeleteBookMutation({ refetchQueries: [ 'BooksList' ] });
 
   const onClose = useCallback(() => {
+    setError(null);
     setOpen(false);
     navigate('/');
   }, [navigate]);
@@ -20,7 +23,13 @@ function DeletionDialog() {
   }, [id]);
 
   function onConfirm(confirmed: boolean) {
-    console.log('TODO: delete confirmed: ', confirmed);
+    if(id && confirmed) {
+      deleteBook({ variables: { id }})
+      .then(() => onClose())
+      .catch((error) => setError(convertToFetchError(error)));
+    } else {
+      onClose();
+    }
   }
 
   return (
@@ -46,7 +55,7 @@ function DeletionDialog() {
 
       <DialogContent id="confirm-dialog-description">
         { error ?
-          <div className="error">{'error.message'}</div> :
+          <div className="error">{error.message}</div> :
           `Do you want remove "${id}"?`
         }
       </DialogContent>

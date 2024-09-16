@@ -1,17 +1,12 @@
 import express from 'express';
-import cors from 'cors';
+import graphqlHTTP from 'express-graphql';
 import jwt from 'jsonwebtoken';
-import jsonServer from 'json-server';
+import cors from 'cors';
+
+import schema from './schema.js';
 
 const port = process.env.REACT_APP_BACKEND_PORT;
-const secret = 'topSecret';
-const user = 'test';
-const password = 'test';
-const dataJson = 'data.json';
-
-if(!port) {
-  throw new Error('REACT_APP_BACKEND_PORT is undefined');
-}
+const secret = 'topSecret!';
 
 const server = express();
 
@@ -19,13 +14,9 @@ server.use(express.json());
 server.use(cors());
 
 server.post('/login', (req, res, next) => {
-  if(req.body.user === user && req.body.password === password) {
+  if (req.body.username === 'admin' && req.body.password === 'test') {
     res.send(
-      jwt.sign(
-        { user: req.body.user },
-        secret,
-        { expiresIn: '1800s' }
-      )
+      jwt.sign({ user: req.body.username }, secret, { expiresIn: '1800s' })
     );
   }
 });
@@ -35,13 +26,19 @@ server.post('/login', (req, res, next) => {
 //     const token = req.headers['authorization'].split(' ')[1];
 //     jwt.verify(token, secret);
 //     next();
-//   } catch(error) {
+//   } catch (e) {
 //     res.sendStatus(403);
 //   }
 // });
 
-server.use('/', jsonServer.router(dataJson));
+server.use(
+  '/api',
+  graphqlHTTP({
+    schema: schema,
+    graphiql: true,
+  })
+);
 
-server.listen(port, () => {
-  console.log(`Server is listening to http://localhost:${port}`);
-});
+server.listen(port, () =>
+  console.log(`server is listening to http://localhost:${port}`)
+);

@@ -1,5 +1,5 @@
 {
-  "name": "books-redux-ts",
+  "name": "graphql-apollo-ts",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -7,6 +7,10 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@fontsource/roboto": "^5.0.14",
+    "@graphql-codegen/cli": "^5.0.2",
+    "@graphql-codegen/typescript": "^4.0.9",
+    "@graphql-codegen/typescript-operations": "^4.2.3",
+    "@graphql-codegen/typescript-react-apollo": "^4.3.2",
     "@hookform/resolvers": "^3.9.0",
     "@mui/icons-material": "^6.0.2",
     "@mui/material": "^6.0.2",
@@ -39,7 +43,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "backend": "cd backend && node --env-file=../.env index.js"
+    "backend": "cd backend && node --env-file=../.env index.js",
+    "generate-query-hooks": "graphql-codegen"
   },
   "eslintConfig": {
     "extends": [

@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { IconButton, Paper, Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel } from "@mui/material";
 import { Delete, Edit, Star, StarBorder } from "@mui/icons-material";
-import { gql, useQuery } from '@apollo/client';
-import { Book, BookSort, BookSortIn, FetchedBook } from "./Book";
+import { Book, BookSort, BookSortIn } from "./Book";
 import { useNavigate } from "react-router-dom";
 import { sortBooks } from "./booksHelpers";
 import ErrorMessage from "../../ErrorMessage";
+import { useBooksListQuery } from "../../graphql/generated";
 
 const tableHead = {
   title: 'Title',
@@ -14,48 +14,24 @@ const tableHead = {
   rating: 'Bewertung',
 };
 
-const GET_BOOKS = gql`
-  query {
-    book {
-      id
-      title
-      isbn
-      author {
-        firstname
-        lastname
-      }
-    }
-  }
-`;
-
 function List() {
   const [ sort, setSort ] = useState<BookSort>({
     orderBy: 'title',
     order: 'asc',
   });
   const navigate = useNavigate();
-  const { error, data } = useQuery<{ book: FetchedBook[] }>(GET_BOOKS);
+  const { error, data } = useBooksListQuery();
 
-  // convert FetchBook[] into Book[]
+  // convert data.book into Book[]
   const books = useMemo<Book[]>(() => {
-    if(data) {
+    if(data && data?.book) {
       return data.book.map(b => {
-        const {
-          id,
-          title,
-          isbn,
-          author = {
-            firstname: '',
-            lastname: '',
-          },
-          rating = 0
-        } = b;
         const book:Book = {
-          id,
-          title,
-          isbn,
-          rating,
-          author: `${author.firstname} ${author.lastname}`,
+          id: b?.id || '',
+          title: b?.title || '',
+          isbn: b?.isbn || '',
+          rating: 0,
+          author: `${b?.author?.firstname || ''} ${b?.author?.lastname || ''}`,
         };
         return book;
       });

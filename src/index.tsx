@@ -1,17 +1,25 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './index.scss';
-import { BrowserRouter } from 'react-router-dom';
 
 const container = document.getElementById('root')!;
 const root = createRoot(container);
 
+const apolloClient = new ApolloClient({
+  uri: `${process.env.REACT_APP_BACKEND_URL}/api`,
+  cache: new InMemoryCache(),
+});
+
 root.render(
   <React.StrictMode>
     <BrowserRouter>
+      <ApolloProvider client={apolloClient}>
         <App />
+      </ApolloProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

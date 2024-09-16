@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { IconButton, Paper, Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel } from "@mui/material";
 import { Delete, Edit, Star, StarBorder } from "@mui/icons-material";
-import { Book, BookSort, BookSortIn } from "./Book";
+import { gql, useQuery } from '@apollo/client';
+import { Book, BookSort, BookSortIn, FetchedBook } from "./Book";
 import { useNavigate } from "react-router-dom";
 import { sortBooks } from "./booksHelpers";
 import ErrorMessage from "../../ErrorMessage";
-import { IFetchError } from "../../FetchError";
 
 const tableHead = {
   title: 'Title',
@@ -14,20 +14,58 @@ const tableHead = {
   rating: 'Bewertung',
 };
 
+const GET_BOOKS = gql`
+  query {
+    book {
+      id
+      title
+      isbn
+      author {
+        firstname
+        lastname
+      }
+    }
+  }
+`;
+
 function List() {
   const [ sort, setSort ] = useState<BookSort>({
     orderBy: 'title',
     order: 'asc',
   });
   const navigate = useNavigate();
-  const [books] = useState<Book[]>([]);
-  let error:IFetchError|null = null;
+  const { error, data } = useQuery<{ book: FetchedBook[] }>(GET_BOOKS);
+
+  // convert FetchBook[] into Book[]
+  const books = useMemo<Book[]>(() => {
+    if(data) {
+      return data.book.map(b => {
+        const {
+          id,
+          title,
+          isbn,
+          author = {
+            firstname: '',
+            lastname: '',
+          },
+          rating = 0
+        } = b;
+        const book:Book = {
+          id,
+          title,
+          isbn,
+          rating,
+          author: `${author.firstname} ${author.lastname}`,
+        };
+        return book;
+      });
+    } else {
+      return [];
+    }
+  }, [data]);
+
   const sortedBooks = useMemo<Book[]>(() => sortBooks(books, sort), [sort, books]);
 
-  useEffect(() => {
-    console.log('TODO: fetch books');
-  }, []);
-  
   function onDelete(book:Book) {
     navigate(`/delete/${book.id}`);
   }

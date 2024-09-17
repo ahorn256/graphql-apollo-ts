@@ -186,7 +186,7 @@ const mutationType = new GraphQLObjectType({
     createBook: {
       type: bookType,
       args: {
-        newUser: {
+        newBook: {
           type: bookInputType,
         },
       },
@@ -195,7 +195,7 @@ const mutationType = new GraphQLObjectType({
     updateBook: {
       type: bookType,
       args: {
-        updatedUser: {
+        updatedBook: {
           type: bookInputType,
         },
       },

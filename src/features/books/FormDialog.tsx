@@ -6,7 +6,8 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { InputBook } from './Book';
 import formValidationSchema from './formValidationSchema';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IFetchError } from '../../FetchError';
+import { convertToFetchError, IFetchError } from '../../FetchError';
+import { useCreateBookMutation } from '../../graphql/generated';
 
 function FormDialog() {
   const {
@@ -20,7 +21,8 @@ function FormDialog() {
   const { id } = useParams<{id:string}>();
   const [ open, setOpen ] = useState(false);
   const navigate = useNavigate();
-  let error:IFetchError|null = null;
+  const [ error, setError ] = useState<IFetchError|null>(null);
+  const [ createBook ] = useCreateBookMutation({ refetchQueries: [ 'BooksList' ] });
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -37,7 +39,10 @@ function FormDialog() {
       } else {
         reset({
           title: '',
-          author: '',
+          author: {
+            firstname: '',
+            lastname: '',
+          },
           isbn: '',
         });
       }
@@ -47,7 +52,21 @@ function FormDialog() {
   }, [id, reset]);
 
   function onSave(book: InputBook) {
-    console.log('TODO: onSave ', book.title);
+    if(id) {
+      console.log('TODO: edit book');
+    } else {
+      createBook({
+        variables: {
+          book: {
+            title: book.title,
+            isbn: book.isbn,
+            author: book.author?.firstname || book.author?.lastname ? book.author : undefined,
+          }
+        }
+      })
+      .then(() => onClose())
+      .catch((error) => setError(convertToFetchError(error)));
+    }
   }
 
   return (
@@ -72,19 +91,23 @@ function FormDialog() {
 
       <form onSubmit={handleSubmit(onSave)}>
         <DialogContent id='form-dialog-description'>
-          {error && <div className='error'>Error: {'error.message'}</div>}
+          {error && <div className='error'>Error: {error.message}</div>}
           <Grid container direction={'column'} rowSpacing={1} display='flex'>
             <Grid>
               <TextField fullWidth={true} label='Titel' error={!!errors.title} {...register('title')}/>
               { errors.title && <div className='error'>{errors.title.message}</div> }
             </Grid>
             <Grid>
-              <TextField fullWidth={true} label='Author' error={!!errors.author} {...register('author')}/>
-              { errors.author && <div className='error'>{errors.author.message}</div> }
-            </Grid>
-            <Grid>
               <TextField fullWidth={true} label='ISBN' error={!!errors.isbn} {...register('isbn')}/>
               { errors.isbn && <div className='error'>{errors.isbn.message}</div> }
+            </Grid>
+            <Grid>
+              <TextField fullWidth={true} label='Author Vorname' error={!!errors.author?.firstname} {...register('author.firstname')}/>
+              { errors.author?.firstname && <div className='error'>{errors.author?.firstname.message}</div> }
+            </Grid>
+            <Grid>
+              <TextField fullWidth={true} label='Author Nachname' error={!!errors.author?.lastname} {...register('author.lastname')}/>
+              { errors.author?.lastname && <div className='error'>{errors.author?.lastname.message}</div> }
             </Grid>
           </Grid>
         </DialogContent>

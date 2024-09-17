@@ -21,3 +21,11 @@ gql`
     }
   }
 `;
+
+gql`
+  mutation createBook($book: BookInput){
+    createBook(newBook: $book) {
+      id
+    }
+  }
+`;

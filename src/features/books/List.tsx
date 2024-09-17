@@ -31,7 +31,10 @@ function List() {
           title: b?.title || '',
           isbn: b?.isbn || '',
           rating: 0,
-          author: `${b?.author?.firstname || ''} ${b?.author?.lastname || ''}`,
+          author: {
+            firstname: b?.author?.firstname || '',
+            lastname: b?.author?.lastname || '',
+          },
         };
         return book;
       });
@@ -77,7 +80,7 @@ function List() {
           {sortedBooks.map(book => (
             <TableRow key={book.id}>
               <TableCell>{book.title}</TableCell>
-              <TableCell>{book.author}</TableCell>
+              <TableCell>{book.author.firstname} {book.author.lastname}</TableCell>
               <TableCell>{book.isbn}</TableCell>
               <TableCell>{Array(5).fill(0).map((item, index) => index < book.rating ? <Star key={index} /> : <StarBorder key={index} />)}</TableCell>
               <TableCell>

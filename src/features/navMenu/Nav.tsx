@@ -1,12 +1,17 @@
 import * as Icon from "@mui/icons-material";
 import { AppBar, Box, IconButton, Toolbar } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import apolloClient, { token } from "../../apolloClient";
+import { useReactiveVar } from "@apollo/client";
 
 function Nav() {
-  let loginToken = false;
+  const loginToken = useReactiveVar(token);
+  const navigate = useNavigate();
 
   function onLogout() {
-    console.log('TODO: onLogout()');
+    token('');
+    apolloClient.clearStore();
+    navigate('/');
   }
 
   return (

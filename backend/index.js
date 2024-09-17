@@ -7,6 +7,8 @@ import schema from './schema.js';
 
 const port = process.env.REACT_APP_BACKEND_PORT;
 const secret = 'topSecret!';
+const user = 'test';
+const password = 'test';
 
 const server = express();
 
@@ -14,10 +16,12 @@ server.use(express.json());
 server.use(cors());
 
 server.post('/login', (req, res, next) => {
-  if (req.body.user === 'test' && req.body.password === 'test') {
+  if (req.body.user === user && req.body.password === password) {
     res.send(
-      jwt.sign({ user: req.body.username }, secret, { expiresIn: '1800s' })
+      jwt.sign({ user: req.body.user }, secret, { expiresIn: '1800s' })
     );
+  } else {
+    res.sendStatus(403);
   }
 });
 

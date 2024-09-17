@@ -6,7 +6,8 @@ import loginValidationSchema from "./loginValidationSchema";
 import { useForm } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { IFetchError } from "../../FetchError";
+import { convertToFetchError, IFetchError } from "../../FetchError";
+import apolloClient, { token } from "../../apolloClient";
 
 function LoginForm() {
   const {
@@ -18,15 +19,40 @@ function LoginForm() {
   });
   const [ open, setOpen ] = useState(false);
   const navigate = useNavigate();
-  let error:IFetchError|null = null;
+  const [ error, setError ] = useState<IFetchError|null>(null);
 
   const onClose = useCallback(() => {
     setOpen(false);
     navigate('/');
   }, [navigate]);
 
-  function onLogin(login:Login) {
-    console.log('TODO: onLogin() ', login);
+  const onLogin = async (login:Login) => {
+    try {
+      const url = process.env.REACT_APP_BACKEND_URL;
+
+      if(!url){
+        throw new Error('REACT_APP_BACKEND_URL is undefined');
+      }
+
+      const response = await fetch(`${url}/login`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(login),
+      })
+
+      if(response.ok) {
+        const data = await response.text();
+        token(data);
+        apolloClient.resetStore();
+        onClose();
+      } else {
+        throw new Error(`Fetching token failed with: ${response.status} ${response.statusText}`);
+      }        
+    } catch(error) {
+      setError(convertToFetchError(error));
+    }
   }
 
   useEffect(() => {
@@ -53,7 +79,7 @@ function LoginForm() {
       
       <form onSubmit={handleSubmit(onLogin)}>
         <DialogContent id='login-form-description'>
-          {error && <div className="error">Error: {'error.message'}</div>}
+          {error && <div className="error">Error: {error.message}</div>}
           <Grid container direction="column" rowSpacing={1}>
             <Grid>
               <TextField fullWidth={true} label='Benutzername' error={!!errors.user} {...register('user')}></TextField>

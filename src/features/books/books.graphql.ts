@@ -15,6 +15,20 @@ gql`
 `;
 
 gql`
+  query BookById($id: ID) {
+    book(id: $id) {
+      id
+      title
+      isbn
+      author {
+        firstname
+        lastname
+      }
+    }
+  }
+`;
+
+gql`
   mutation deleteBook($id:ID!) {
     deleteBook(id: $id) {
       id
@@ -23,8 +37,16 @@ gql`
 `;
 
 gql`
-  mutation createBook($book: BookInput){
+  mutation createBook($book: BookInput) {
     createBook(newBook: $book) {
+      id
+    }
+  }
+`;
+
+gql`
+  mutation updateBook($book: BookInput) {
+    updateBook(updatedBook: $book) {
       id
     }
   }

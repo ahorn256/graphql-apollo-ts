@@ -3,11 +3,11 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Grid2 as Gri
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup'
-import { InputBook } from './Book';
+import { Book, InputBook } from './Book';
 import formValidationSchema from './formValidationSchema';
 import { useNavigate, useParams } from 'react-router-dom';
 import { convertToFetchError, IFetchError } from '../../FetchError';
-import { useCreateBookMutation } from '../../graphql/generated';
+import { useBookByIdLazyQuery, useCreateBookMutation, useUpdateBookMutation } from '../../graphql/generated';
 
 function FormDialog() {
   const {
@@ -23,47 +23,74 @@ function FormDialog() {
   const navigate = useNavigate();
   const [ error, setError ] = useState<IFetchError|null>(null);
   const [ createBook ] = useCreateBookMutation({ refetchQueries: [ 'BooksList' ] });
+  const [ updateBook ] = useUpdateBookMutation({ refetchQueries: [ 'BooksList' ] });
+  const [ getBook, { error: bookByIdError } ] = useBookByIdLazyQuery();
+  const [ book, setBook ] = useState<Book|null>(null);
 
   const onClose = useCallback(() => {
+    setError(null);
     setOpen(false);
     navigate('/');
   }, [navigate]);
 
   useEffect(() => {
-    if(id) {
+    if(bookByIdError) {
       setOpen(true);
-      const book = null;
-      console.log('TODO: get book');
-      if(book) {
-        reset(book);
-      } else {
-        reset({
-          title: '',
-          author: {
-            firstname: '',
-            lastname: '',
-          },
-          isbn: '',
-        });
-      }
-    } else {
-      setOpen(true);
+      setError(convertToFetchError(bookByIdError));
     }
-  }, [id, reset]);
+  }, [ bookByIdError ]);
+
+  useEffect(() => {
+    if(id) {
+      getBook({ variables: { id }})
+      .then((response) => {
+        if(response.data?.book && response.data?.book.length && response.data?.book[0]){
+          const { title, isbn, author } = response.data?.book[0];
+          setBook({
+            id,
+            title: title || '',
+            isbn: isbn || '',
+            author: {
+              firstname: author?.firstname || '',
+              lastname: author?.lastname || '',
+            },
+            rating: 0,
+          });
+        }
+      });
+    }
+  }, [ id, getBook ]);
+
+  useEffect(() => {
+    if(book) {
+      setOpen(true);
+      reset(book);
+    } else if(!id) {
+      setOpen(true);
+      reset({
+        title: '',
+        author: {
+          firstname: '',
+          lastname: '',
+        },
+        isbn: '',
+      });
+    }
+  }, [ id, book, reset ]);
 
   function onSave(book: InputBook) {
+    const newBook = {
+      title: book.title,
+      isbn: book.isbn,
+      author: book.author?.firstname || book.author?.lastname ? book.author : undefined,
+    };
+
     if(id) {
-      console.log('TODO: edit book');
+      updateBook({ variables: { book: { ...newBook, id } } })
+      .then(() => onClose())
+      .catch((error) => setError(convertToFetchError(error)));
     } else {
-      createBook({
-        variables: {
-          book: {
-            title: book.title,
-            isbn: book.isbn,
-            author: book.author?.firstname || book.author?.lastname ? book.author : undefined,
-          }
-        }
-      })
+      createBook({ variables: { book: newBook } })
       .then(() => onClose())
       .catch((error) => setError(convertToFetchError(error)));
     }

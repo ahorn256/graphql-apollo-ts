@@ -157,6 +157,9 @@ const queryType = new GraphQLObjectType({
     book: {
       type: GraphQLList(bookType),
       args: {
+        id: {
+          type: GraphQLID,
+        },
         title: {
           type: GraphQLString,
         },
